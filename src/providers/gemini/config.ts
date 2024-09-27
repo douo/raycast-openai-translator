@@ -17,7 +17,7 @@ const config: IConfig = {
     name: "gemini-pro",
   },
   supportCustomModel: false,
-  async listModels(apikey: string | undefined): Promise<IModel[]> {
+  async listModels(apikey: string | undefined, _: string | undefined): Promise<IModel[]> {
     console.log(`${this.defaultEntrypoint}?key=${apikey}`);
     // apikey is not undefined or empty or null
     if (apikey) {
