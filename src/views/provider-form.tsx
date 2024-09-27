@@ -68,7 +68,6 @@ function isValidUrl(url: string) {
   }
 }
 
-
 export const ProviderForm = (props: ProviderFormProps) => {
   const { record, hook, onCancel, onDone } = props;
   const providerProps = record?.props;
@@ -79,7 +78,9 @@ export const ProviderForm = (props: ProviderFormProps) => {
   const [modelList, setModelList] = useState<IModel[]>([]);
   const [modelId, setModelId] = useState<string | undefined>(undefined);
 
-  const [entrypoint, setEntrypoint] = useState<string>(providerProps ? providerProps.entrypoint : config.defaultEntrypoint);
+  const [entrypoint, setEntrypoint] = useState<string>(
+    providerProps ? providerProps.entrypoint : config.defaultEntrypoint,
+  );
   const [entrypointError, setEntrypointError] = useState<string | undefined>();
 
   const [isModelLoading, setIsModelLoading] = useState(false);
@@ -158,7 +159,6 @@ export const ProviderForm = (props: ProviderFormProps) => {
       setAPIKeyError(undefined);
     }
   }
-
 
   function handleProviderChange(provider: string) {
     const selectedProvider = providers.find((p) => p.value === provider);

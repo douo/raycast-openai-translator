@@ -1,14 +1,14 @@
 import { IConfig, IModel } from "../types";
 
-function getBaseUrl(fullUrl: string) : string | null{
-    try {
-        const parsedUrl = new URL(fullUrl);
-        // Return the base URL (protocol + host)
-        return `${parsedUrl.protocol}//${parsedUrl.host}`;
-    } catch (e) {
-        console.error("Invalid URL:", e);
-        return null; // Return null if the URL is invalid
-    }
+function getBaseUrl(fullUrl: string): string | null {
+  try {
+    const parsedUrl = new URL(fullUrl);
+    // Return the base URL (protocol + host)
+    return `${parsedUrl.protocol}//${parsedUrl.host}`;
+  } catch (e) {
+    console.error("Invalid URL:", e);
+    return null; // Return null if the URL is invalid
+  }
 }
 
 const config: IConfig = {
@@ -37,9 +37,9 @@ const config: IConfig = {
       { id: "gemma:2b", name: "Gemma 2B" },
       { id: "gemma:7b", name: "Gemma 7B" },
     ];
-    var result = fallbackModels;
+    let result = fallbackModels;
 
-    if (entrypoint && entrypoint !== "" ) {
+    if (entrypoint && entrypoint !== "") {
       const url = getBaseUrl(entrypoint) + "/api/tags";
       try {
         const response = await fetch(url, {
@@ -51,13 +51,12 @@ const config: IConfig = {
         if (!response.ok) {
           console.error(`API request failed with status ${response.status}`);
         }
-        const data = await response.json() as { models: { name: string }[] };
+        const data = (await response.json()) as { models: { name: string }[] };
         // check gpt inside the model list
-        result = data.models
-          .map((model: { name: string }) => ({
-            name: model.name,
-            id: model.name,
-          }));
+        result = data.models.map((model: { name: string }) => ({
+          name: model.name,
+          id: model.name,
+        }));
         return result;
       } catch (error) {
         console.error("Failed to fetch model list from API, using fallback models:", error);

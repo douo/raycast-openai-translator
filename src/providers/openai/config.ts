@@ -34,7 +34,7 @@ const config: IConfig = {
           console.error(`API request failed with status ${response.status}`);
         }
 
-        const data = await response.json() as { data: { id: string }[] };
+        const data = (await response.json()) as { data: { id: string }[] };
         // check gpt inside the model list
         result = data.data
           .filter((model: { id: string }) => {
