@@ -58,6 +58,17 @@ function nextValidName(config: IConfig, hook: ProvidersHook): string {
   return name;
 }
 
+function isValidUrl(url: string) {
+  try {
+    const parsedUrl = new URL(url);
+    // Check if the protocol is http or https
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch (e) {
+    return false; // Invalid URL
+  }
+}
+
+
 export const ProviderForm = (props: ProviderFormProps) => {
   const { record, hook, onCancel, onDone } = props;
   const providerProps = record?.props;
@@ -67,6 +78,10 @@ export const ProviderForm = (props: ProviderFormProps) => {
 
   const [modelList, setModelList] = useState<IModel[]>([]);
   const [modelId, setModelId] = useState<string | undefined>(undefined);
+
+  const [entrypoint, setEntrypoint] = useState<string>(providerProps ? providerProps.entrypoint : config.defaultEntrypoint);
+  const [entrypointError, setEntrypointError] = useState<string | undefined>();
+
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [modelValue, setModelValue] = useState<string | undefined>("");
 
@@ -79,7 +94,6 @@ export const ProviderForm = (props: ProviderFormProps) => {
   const [name, setName] = useState<string>(record?.props ? record.props.name : nextValidName(config, hook));
   const [nameError, setNameError] = useState<string | undefined>();
 
-
   useEffect(() => {
     fetchModels();
   }, [config]);
@@ -87,23 +101,22 @@ export const ProviderForm = (props: ProviderFormProps) => {
   const fetchModels = async () => {
     try {
       setIsModelLoading(true);
-      var _model = providerProps ? providerProps.apiModel : config.defaultModel?.id
+      let _model = providerProps ? providerProps.apiModel : config.defaultModel?.id;
       if (modelId == undefined) {
         setModelId(_model);
         setModelValue(_model);
-      }else{
+      } else {
         _model = modelId;
       }
-      const models = await config.listModels(apikey);
+      const models = await config.listModels(apikey, entrypoint);
       if (config.supportCustomModel) {
         models.push({ id: "custom", name: "Custom" });
-        const isCustomModel = !(models.find((m) => m.id === _model))
-        if(isCustomModel) {
-          setModelId("custom")
+        const isCustomModel = !models.find((m) => m.id === _model);
+        if (isCustomModel) {
+          setModelId("custom");
         }
       }
       setModelList(models);
-      console.log("Models fetched:", models);
       setIsModelLoading(false);
     } catch (error) {
       console.error("Error fetching models:", error);
@@ -115,9 +128,9 @@ export const ProviderForm = (props: ProviderFormProps) => {
     if (selectedModel) {
       const id = selectedModel.id;
       setModelId(id);
-      if(id == "custom") {
+      if (id == "custom") {
         setModelValue("");
-      }else{
+      } else {
         setModelValue(id);
       }
     }
@@ -138,6 +151,14 @@ export const ProviderForm = (props: ProviderFormProps) => {
       setAPIKeyError(undefined);
     }
   }
+  function handleEntrypointChange(value: string) {
+    setEntrypoint(value);
+    if (entrypointError && entrypointError.length > 0) {
+      //reset error
+      setAPIKeyError(undefined);
+    }
+  }
+
 
   function handleProviderChange(provider: string) {
     const selectedProvider = providers.find((p) => p.value === provider);
@@ -254,7 +275,16 @@ export const ProviderForm = (props: ProviderFormProps) => {
           id="entrypoint"
           title="Entrypoint"
           placeholder="Enter custom entrypoint"
-          defaultValue={providerProps ? providerProps.entrypoint : config.defaultEntrypoint}
+          onChange={handleEntrypointChange}
+          defaultValue={entrypoint}
+          error={entrypointError}
+          onBlur={(event) => {
+            console.log("onBlur", event.target.value);
+            const value = event.target.value;
+            if (!value || value.length == 0 || !isValidUrl(value)) {
+              setEntrypointError("Must be a valid URL");
+            }
+          }}
         />
       )}
       {config.hasApiKey && (
