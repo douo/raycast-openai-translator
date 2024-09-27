@@ -1,5 +1,19 @@
 # OpenAI Translator Changelog
 
+## [Dynamic OpenAI & Ollama Model List] - 2024-09-28
+
+- Added dynamic retrieval of OpenAI & Ollama model lists. Fixed #14619
+- Fixed issue where custom models were lost when re-editing the provider
+- Fixed Missing languages #14618
+
+## [Update OpenAI support model] - 2024-08-01
+
+- Update OpenAI support model
+
+## [Toggle Auto copy to clipboard after translation] - 2024-04-29
+
+- Add preference to auto on/off copy to clipboard after translation @joyg
+
 ## [Rewrite Multiple LLM Provider] - 2024-03-29
 
 - More LLM Provider Support:
