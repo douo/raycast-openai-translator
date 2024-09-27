@@ -51,7 +51,7 @@ const config: IConfig = {
         if (!response.ok) {
           console.error(`API request failed with status ${response.status}`);
         }
-        const data = await response.json();
+        const data = await response.json() as { models: { name: string }[] };
         // check gpt inside the model list
         result = data.models
           .map((model: { name: string }) => ({
