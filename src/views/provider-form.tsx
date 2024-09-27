@@ -65,13 +65,12 @@ export const ProviderForm = (props: ProviderFormProps) => {
     providers[record ? providers.findIndex((p) => p.value === record.type) : 0].config,
   );
 
-  const [models, setModels] = useState<IModel[]>([]);
-  const [model, setModel] = useState<string | undefined>("");
+  const [modelList, setModelList] = useState<IModel[]>([]);
+  const [modelId, setModelId] = useState<string | undefined>(undefined);
   const [isModelLoading, setIsModelLoading] = useState(false);
+  const [modelValue, setModelValue] = useState<string | undefined>("");
 
-  const customModel = { id: "custom", name: "Custom..." };
-
-  const isCustomModel = model == customModel.id;
+  const isCustomModel = modelId == "custom";
   const [customModelError, setCustomModelError] = useState<string | undefined>();
 
   const [apikey, setAPIKey] = useState(providerProps ? providerProps.apikey : "");
@@ -80,19 +79,31 @@ export const ProviderForm = (props: ProviderFormProps) => {
   const [name, setName] = useState<string>(record?.props ? record.props.name : nextValidName(config, hook));
   const [nameError, setNameError] = useState<string | undefined>();
 
+
   useEffect(() => {
-    setModel(providerProps ? providerProps.apiModel : config.defaultModel?.id);
     fetchModels();
   }, [config]);
 
   const fetchModels = async () => {
     try {
       setIsModelLoading(true);
+      var _model = providerProps ? providerProps.apiModel : config.defaultModel?.id
+      if (modelId == undefined) {
+        setModelId(_model);
+        setModelValue(_model);
+      }else{
+        _model = modelId;
+      }
       const models = await config.listModels(apikey);
       if (config.supportCustomModel) {
-        models.push(customModel);
+        models.push({ id: "custom", name: "Custom" });
+        const isCustomModel = !(models.find((m) => m.id === _model))
+        if(isCustomModel) {
+          setModelId("custom")
+        }
       }
-      setModels(models);
+      setModelList(models);
+      console.log("Models fetched:", models);
       setIsModelLoading(false);
     } catch (error) {
       console.error("Error fetching models:", error);
@@ -100,9 +111,15 @@ export const ProviderForm = (props: ProviderFormProps) => {
   };
 
   function handleModelChange(modelId: string) {
-    const selectedModel = models.find((m) => m.id === modelId);
+    const selectedModel = modelList.find((m) => m.id === modelId);
     if (selectedModel) {
-      setModel(selectedModel.id);
+      const id = selectedModel.id;
+      setModelId(id);
+      if(id == "custom") {
+        setModelValue("");
+      }else{
+        setModelValue(id);
+      }
     }
   }
 
@@ -111,6 +128,7 @@ export const ProviderForm = (props: ProviderFormProps) => {
     if (customModelError && customModelError.length > 0) {
       setCustomModelError(undefined);
     }
+    setModelValue(value);
   }
 
   function handleAPIKeyChange(value: string) {
@@ -258,10 +276,10 @@ export const ProviderForm = (props: ProviderFormProps) => {
         id="model"
         title="Model"
         isLoading={isModelLoading}
-        defaultValue={models.length ? model : ""}
+        defaultValue={modelList.length ? modelId : ""}
         onChange={handleModelChange}
       >
-        {models.map((model) => (
+        {modelList.map((model) => (
           <Form.Dropdown.Item key={model.id} value={model.id} title={model.name} />
         ))}
       </Form.Dropdown>
@@ -270,6 +288,7 @@ export const ProviderForm = (props: ProviderFormProps) => {
           id="customModel"
           title="Custom Model"
           placeholder="Enter custom model"
+          value={modelValue}
           error={customModelError}
           onChange={handleCustomModelChange}
           onBlur={(event) => {
